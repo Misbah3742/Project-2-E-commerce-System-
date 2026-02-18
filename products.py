@@ -1,14 +1,14 @@
-from storage import get_db_connection
+from storage import get_connection
 
 def add_product(name, price, stock):
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor()
     cursor.execute('INSERT INTO products (name, price, stock) VALUES (?, ?, ?)', (name, price, stock))
     conn.commit()
     conn.close()
     
 def list_products():
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor()
     cursor.execute('SELECT product_id, name, price, stock FROM products')
     rows = cursor.fetchall()
@@ -27,12 +27,12 @@ def list_products():
     return products
 
 def search_products(keyword):
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor()
     search_term = "%" + keyword.lower() + "%"
     cursor.execute(
-        'SELECT product_id, name, price, stock FROM products WHERE LOWER(name) LIKE ?', (search_term,),
-   )
+        'SELECT product_id, name, price, stock FROM products WHERE LOWER(name) LIKE ?', (search_term,)
+    )
     rows = cursor.fetchall()
     conn.close()
     
@@ -49,7 +49,7 @@ def search_products(keyword):
     return products
 
 def get_product(product_id):
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
         'SELECT product_id, name, price, stock FROM products WHERE product_id = ?',
