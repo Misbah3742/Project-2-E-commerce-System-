@@ -3,23 +3,19 @@ from products import get_product
 
 
 def add_to_cart(username, product_id, qty):
-    # Check quantity
     if qty <= 0:
         return False, "Quantity must be greater than zero."
 
-    # Check if product exists
     product = get_product(product_id)
     if not product:
         return False, "Product not found."
 
-    # Check stock
     if qty > product["stock"]:
         return False, "Not enough stock available."
 
     conn = get_connection()
     cursor = conn.cursor()
 
-    # Check if product already in cart
     cursor.execute(
         "SELECT qty FROM carts WHERE username = ? AND product_id = ?",
         (username, product_id),
@@ -27,8 +23,8 @@ def add_to_cart(username, product_id, qty):
     result = cursor.fetchone()
 
     if result:
-        # Update quantity
-        new_qty = result["qty"] + qty
+        oldQty = result["qty"]
+        new_qty = oldQty + qty
         if new_qty > product["stock"]:
             conn.close()
             return False, "Total quantity exceeds available stock."
@@ -37,7 +33,7 @@ def add_to_cart(username, product_id, qty):
             (new_qty, username, product_id),
         )
     else:
-        # Add new item
+        # first time add
         cursor.execute(
             "INSERT INTO carts (username, product_id, qty) VALUES (?, ?, ?)",
             (username, product_id, qty),
@@ -49,10 +45,12 @@ def add_to_cart(username, product_id, qty):
 
 
 def remove_from_cart(username, product_id, qty=None):
+    if qty is not None and qty <= 0:
+        return False, "Quantity to remove must be greater than zero."
+
     conn = get_connection()
     cursor = conn.cursor()
 
-    # Check if item in cart
     cursor.execute(
         "SELECT qty FROM carts WHERE username = ? AND product_id = ?",
         (username, product_id),
@@ -65,8 +63,8 @@ def remove_from_cart(username, product_id, qty=None):
 
     current_qty = result["qty"]
 
-    # Remove all or reduce quantity
     if qty is None or qty >= current_qty:
+        # remove full row
         cursor.execute(
             "DELETE FROM carts WHERE username = ? AND product_id = ?",
             (username, product_id),
@@ -87,7 +85,6 @@ def get_cart(username):
     conn = get_connection()
     cursor = conn.cursor()
 
-    # Get cart items with product details
     cursor.execute(
         """
         SELECT c.product_id, c.qty, p.name, p.price, p.stock
@@ -105,17 +102,18 @@ def get_cart(username):
     total = 0
 
     for row in rows:
-        subtotal = row["qty"] * row["price"]
+        q = row["qty"]
+        pr = row["price"]
+        subtotal = q * pr
         total = total + subtotal
 
-        item = {
-            "product_id": row["product_id"],
-            "name": row["name"],
-            "qty": row["qty"],
-            "price": row["price"],
-            "subtotal": subtotal,
-            "stock": row["stock"],
-        }
+        item = {}
+        item["product_id"] = row["product_id"]
+        item["name"] = row["name"]
+        item["qty"] = q
+        item["price"] = pr
+        item["subtotal"] = subtotal
+        item["stock"] = row["stock"]
         items.append(item)
 
     return items, total

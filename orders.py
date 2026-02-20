@@ -11,7 +11,10 @@ def setup_discount_codes():
 
     codes = [("SAVE10", 10, 1), ("SAVE15", 15, 1), ("SAVE20", 20, 1)]
 
-    for code, percent, active in codes:
+    for c in codes:
+        code = c[0]
+        percent = c[1]
+        active = c[2]
         cursor.execute(
             "INSERT OR IGNORE INTO discount_codes (code, percent, active) VALUES (?, ?, ?)",
             (code, percent, active),
@@ -35,7 +38,10 @@ def check_discount_code(code):
     conn.close()
 
     if result and result["active"] == 1:
-        return {"code": result["code"], "percent": result["percent"]}
+        d = {}
+        d["code"] = result["code"]
+        d["percent"] = result["percent"]
+        return d
     return None
 
 
@@ -93,16 +99,15 @@ def checkout(username, discount_code=None):
     clear_cart(username)
 
     # Create receipt
-    receipt = {
-        "order_id": order_id,
-        "username": username,
-        "items": items,
-        "total": total,
-        "discount_code": applied_code,
-        "discount_amount": discount_amount,
-        "final_total": final_total,
-        "timestamp": timestamp,
-    }
+    receipt = {}
+    receipt["order_id"] = order_id
+    receipt["username"] = username
+    receipt["items"] = items
+    receipt["total"] = total
+    receipt["discount_code"] = applied_code
+    receipt["discount_amount"] = discount_amount
+    receipt["final_total"] = final_total
+    receipt["timestamp"] = timestamp
 
     return True, "Order placed successfully!", receipt
 
@@ -133,15 +138,14 @@ def get_order_history(username):
         )
 
         items = []
-        for row in cursor.fetchall():
-            items.append(
-                {
-                    "product_id": row["product_id"],
-                    "name": row["name"],
-                    "qty": row["qty"],
-                    "price": row["price"],
-                }
-            )
+        order_items_rows = cursor.fetchall()
+        for row in order_items_rows:
+            item = {}
+            item["product_id"] = row["product_id"]
+            item["name"] = row["name"]
+            item["qty"] = row["qty"]
+            item["price"] = row["price"]
+            items.append(item)
 
         order_list.append(
             {

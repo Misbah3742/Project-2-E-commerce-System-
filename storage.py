@@ -13,7 +13,7 @@ def init_db():
     conn = get_connection()
     cursor = conn.cursor()
 
-    # Create users table
+    # users table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -23,7 +23,7 @@ def init_db():
         )
     """)
 
-    # Create products table
+    # products table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS products (
             product_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,7 +33,7 @@ def init_db():
         )
     """)
 
-    # Create carts table
+    # cart table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS carts (
             username TEXT NOT NULL,
@@ -43,7 +43,7 @@ def init_db():
         )
     """)
 
-    # Create orders table
+    # orders table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS orders (
             order_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -56,7 +56,7 @@ def init_db():
         )
     """)
 
-    # Create order_items table
+    # order items
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS order_items (
             order_item_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -67,7 +67,7 @@ def init_db():
         )
     """)
 
-    # Create discount_codes table
+    # discount codes
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS discount_codes (
             code TEXT PRIMARY KEY,
